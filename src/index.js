@@ -11,16 +11,25 @@ console.log(ApiService);
 
 import debounce from 'lodash.debounce';
 
+//Импортируем плагин уведомлений pnotify
+import { alert, defaultModules } from '@pnotify/core';
+import '@pnotify/core/dist/PNotify.css';
+import * as PNotifyMobile from '@pnotify/mobile';
+import '@pnotify/mobile/dist/PNotifyMobile.css';
 
+//импортируем плагин модального окна
+// import * as basicLightbox from 'basiclightbox';
 
 const newApiService = new ApiService;
+console.log(newApiService.fetchImg());
 
 const refs = {
     getInput: document.querySelector('.search-input'),
     getGalleryList: document.querySelector('.gallery-list'),
     getGalleryListItem: document.querySelector('.gallery-item'),
     getCard: document.querySelector('.photo-cardist'),
-    
+    getImg: document.querySelector('.img'),
+    getBtn: document.querySelector('.btn'), 
 }
 console.log(refs.getInput);
 
@@ -28,7 +37,7 @@ refs.getInput.addEventListener('input', debounce(onSearch, 1000));
 
 function onSearch(event) {
     event.preventDefault();
-
+    
     newApiService.query = refs.getInput.value;
     console.log(newApiService.query);
 
@@ -38,30 +47,33 @@ function onSearch(event) {
 
     newApiService.resetPage();
     clearGalleryList();
-    
+    fetchImgList();  
+}
 
-
-    newApiService.fetchImg().then(gallery => {
+function fetchImgList() {
+     newApiService.fetchImg().then(gallery => {
         console.log(gallery);
         renderGalleryList(gallery);
+        loadMoreBtn();
     
-    })
+        if ([...gallery].length === 0) {
+            renderNotify();
+        }
 
-     
-
-    console.log(newApiService.fetchImg());
-    
+        if ([...gallery].length < 12) {
+            refs.getBtn.setAttribute('hidden', 'true');
+        }
+     })
 }
 
 function renderGalleryList(gallery) {
     const markUp = galleryTemplates(gallery);
-    refs.getGalleryList.innerHTML = markUp;
+    refs.getGalleryList.insertAdjacentHTML('beforeend', markUp);
 }
 
 function clearGalleryList() {
   refs.getGalleryList.innerHTML = '';
 }
-
 
 // для кнопки показать еще
 function scroll() {
@@ -72,5 +84,40 @@ function scroll() {
     block: 'end',
     });
 }
+
+// кнопка "Показать еще"
+function loadMoreBtn() {
+    refs.getBtn.removeAttribute('hidden');
+    refs.getBtn.addEventListener('click', fetchImgList);
+
+    newApiService.incrementPage();
+    scroll();
+}
+
+function renderNotify() {
+    defaultModules.set(PNotifyMobile, {});
+
+    alert({
+    text: 'Sorry, we didn`t find anything!'
+    });
+}
+
+
+
+
+
+//реализация просмотра изображения в модальном окне
+// function onImgClick(event) {
+//     const instance = basicLightbox.create(`
+//     <img src="${largeImageURL}" width="800" height="600">
+// `);
+
+//     instance.show();
+// }
+// refs.getImg.addEventListener('click', onImgClick);
+
+
+
+
 
   
