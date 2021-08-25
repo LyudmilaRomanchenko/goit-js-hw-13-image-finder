@@ -33,7 +33,7 @@ const refs = {
 }
 console.log(refs.getInput);
 
-refs.getInput.addEventListener('input', debounce(onSearch, 1000));
+refs.getInput.addEventListener('input', debounce(onSearch, 500));
 
 function onSearch(event) {
     event.preventDefault();
